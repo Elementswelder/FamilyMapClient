@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="General">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/lifeStoryCode"
+            android:title="@string/lifeStoryName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/familyTreeCode"
+            android:title="@string/familyTreeName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/spouseLineCode"
+            android:title="@string/spouseLinesName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/fatherSideCode"
+            android:title="@string/fatherSideName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/motherSideCode"
+            android:title="@string/motherSideName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/maleEventCode"
+            android:title="@string/maleEventsName"/>
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/femaleEventCode"
+            android:title="@string/femaleEventsName"/>
+
+        <Preference
+            android:title="@string/logoutName"
+            android:key="@string/logoutCode"
+            android:summary="@string/logoutNameDetails"/>
+
+
+
+
+    </PreferenceCategory>
+</PreferenceScreen>

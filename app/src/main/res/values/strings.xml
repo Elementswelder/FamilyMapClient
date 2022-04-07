@@ -10,11 +10,46 @@
     <string name="email">Email:</string>
 
     <!--Gender Values -->
-    <string name="gender">Gender</string>
+    <string name="gender">Gender:</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
 
     <!-- Button Names -->
     <string name="sign_in">Sign In</string>
     <string name="register">Register</string>
+
+    <!-- Map Values -->
+    <string name="mapFragmentName">Click on a marker</string>
+    <string name="mapFragmentEvent">to see event info.</string>
+
+    <!--Menu Text -->
+    <string name="searchMenuText">Search</string>
+    <string name="settingMenuText">Settings</string>
+
+    <!--Settings Strings -->
+    <string name="lifeStoryName">Life Story Lines</string>
+    <string name="listStoryDetails">SHOW LIFE STORY LINES</string>
+    <string name="familyTreeName">Family Tree Lines</string>
+    <string name="familyTreeDetails">SHOW FAMILY TREE LINES</string>
+    <string name="spouseLinesName">Spouse Lines</string>
+    <string name="spouseLinesDetails">SHOW SPOUSE LINES</string>
+    <string name="fatherSideName">Father\'s Side</string>
+    <string name="fatherSideDetails">FILTER BY FATHER\'S SIDE OF FAMILY</string>
+    <string name="motherSideName">Mother\'s Side</string>
+    <string name="motherSideDetails">FILTER BY MOTHER\'S SIDE DETAILS</string>
+    <string name="maleEventsName">Male Events</string>
+    <string name="genderEventsDetails">FILTER EVENTS BASED ON GENDER</string>
+    <string name="femaleEventsName">Female Events</string>
+    <string name="logoutName">Logout</string>
+    <string name="logoutNameDetails">RETURN TO LOGIN SCREEN</string>
+
+    <!-- Settings Code for each -->
+    <string name="lifeStoryCode">life_story</string>
+    <string name="familyTreeCode">family_tree</string>
+    <string name="spouseLineCode">spouse_line</string>
+    <string name="fatherSideCode">father_side</string>
+    <string name="motherSideCode">mother_side</string>
+    <string name="maleEventCode">male_event</string>
+    <string name="femaleEventCode">female_event</string>
+    <string name="logoutCode">logout_code</string>
 </resources>
