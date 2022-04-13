@@ -16,10 +16,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.joanzapata.iconify.Icon;
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.FontAwesomeModule;
 
@@ -53,7 +53,10 @@ public class MapsFragment extends Fragment {
     int colorNum = 0;
     Map<String, Integer> colorMap = new HashMap<>();
     ImageView genderPhoto;
+    GoogleMap defaultMap;
+    DataCache dataCache = DataCache.getInstance();
     Event placeboEvent = new Event("null", "null", "Null", 1, 1, "null", "null", "null", 5000);
+    Set<Event> eventList = new HashSet<>();
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -68,21 +71,30 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
+
             //Load the markers on the map on start
+            LinearLayout informationBox = (LinearLayout) getView().findViewById(R.id.eventActivityClick);
+            defaultMap = googleMap;
             genderPhoto = (ImageView) getView().findViewById(R.id.genderPic);
             Drawable defaultGender = new IconDrawable(getContext(), FontAwesomeIcons.fa_android).color(R.color.black).sizeDp(35);
             genderPhoto.setImageDrawable(defaultGender);
             loadMarkers(googleMap);
+
+            if (dataCache.isEventActivity()){
+                setUpEventActivity();
+            }
+
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(@NonNull Marker marker) {
-                    DataCache dataCache = DataCache.getInstance();
                     removeLines();
                     loadMarkers(googleMap);
                     TextView nameOfPerson = (TextView) getView().findViewById(R.id.mapTextName);
                     TextView eventInfo = (TextView) getView().findViewById(R.id.mapTextEvent);
 
                     Event markerEvent = (Event) marker.getTag();
+                    dataCache.setEventActivity(markerEvent);
+                    dataCache.setPersonActivity(dataCache.getPerson(markerEvent.getPersonID()));
                     assert markerEvent != null;
                     Person personClicked = dataCache.getPerson(markerEvent.getPersonID());
                     if (personClicked.getGender().equalsIgnoreCase("m")){
@@ -102,9 +114,35 @@ public class MapsFragment extends Fragment {
                 }
             });
 
+            informationBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (dataCache.getPersonActivity() != null) {
+                        startActivity(new Intent(getContext(), PersonActivity.class));
+                    }
+                    else {
+                        Toast.makeText(getContext(), "Please select a marker to see a person", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
         }
 
     };
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (defaultMap != null){
+            defaultMap.clear();
+            removeLines();
+            loadMarkers(defaultMap);
+           // eventList = dataCache.calculateEventsOnSettings();
+            if (dataCache.getEventActivity() != null){
+                setLines(dataCache.getEventActivity(), defaultMap);
+            }
+        }
+    }
 
 
     @Nullable
@@ -125,14 +163,21 @@ public class MapsFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.main_menu, menu);
         MenuItem searchItem = menu.findItem(R.id.searchMenu);
-        searchItem.setIcon(new IconDrawable(getContext(), FontAwesomeIcons.fa_search)
-                .colorRes(R.color.white)
-                .actionBarSize());
-
         MenuItem settingItem = menu.findItem(R.id.settingMenu);
-        settingItem.setIcon(new IconDrawable(getContext(), FontAwesomeIcons.fa_gear)
-                .colorRes(R.color.white)
-                .actionBarSize());
+        if (!dataCache.isEventActivity()) {
+            searchItem.setIcon(new IconDrawable(getContext(), FontAwesomeIcons.fa_search)
+                    .colorRes(R.color.white)
+                    .actionBarSize());
+
+            settingItem.setIcon(new IconDrawable(getContext(), FontAwesomeIcons.fa_gear)
+                    .colorRes(R.color.white)
+                    .actionBarSize());
+        }
+        else{
+            searchItem.setVisible(false);
+            settingItem.setVisible(false);
+        }
+
 
     }
 
@@ -141,7 +186,7 @@ public class MapsFragment extends Fragment {
         //super.onOptionsItemSelected(menu);
         switch (menu.getItemId()) {
             case R.id.searchMenu:
-                Toast.makeText(getActivity(), "Clicked on Search", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getContext(), SearchActivity.class));
                 return true;
             case R.id.settingMenu:
                 startActivity(new Intent(getContext(), SettingsActivity.class));
@@ -166,15 +211,14 @@ public class MapsFragment extends Fragment {
 
     private void setLines(Event clickedEvent, GoogleMap map){
         //Set up
-        DataCache data = DataCache.getInstance();
-        Person clickedOnPerson = data.getPerson(clickedEvent.getPersonID());
-        List<Event> personEvents = data.getAssociatedEvents(clickedOnPerson.getPersonID());
+        Person clickedOnPerson = dataCache.getPerson(clickedEvent.getPersonID());
+        List<Event> personEvents = dataCache.getAssociatedEvents(clickedOnPerson.getPersonID());
 
         //Check for a spouse and then add lines if spouse exists
-        if (data.getPerson(clickedOnPerson.getSpouseID()) != null) {
-            Person clickedOnSpouse = data.getPerson(clickedOnPerson.getSpouseID());
+        if ((dataCache.getPerson(clickedOnPerson.getSpouseID()) != null) && (dataCache.isSpouseLine()) && (eventExists(clickedOnPerson.getSpouseID()))) {
+            Person clickedOnSpouse = dataCache.getPerson(clickedOnPerson.getSpouseID());
             //Set the spouse lines
-            List<Event> spouseEvents = data.getAssociatedEvents(clickedOnSpouse.getPersonID());
+            List<Event> spouseEvents = dataCache.getAssociatedEvents(clickedOnSpouse.getPersonID());
             Event spouseEvent = getEarliestEvent(spouseEvents);
             LatLng startPoint = new LatLng(clickedEvent.getLatitude(), clickedEvent.getLongitude());
             LatLng endPoint = new LatLng(spouseEvent.getLatitude(), spouseEvent.getLongitude());
@@ -184,19 +228,24 @@ public class MapsFragment extends Fragment {
         }
         //Setup the Person Events in Chronological Order
         Collections.sort(personEvents, year);
-        for (int i = 0; i < personEvents.size(); i++){
-            if (i + 1 >= personEvents.size()){
-                break;
-            } else {
-                LatLng start = new LatLng(personEvents.get(i).getLatitude(), personEvents.get(i).getLongitude());
-                LatLng end = new LatLng(personEvents.get(i+1).getLatitude(), personEvents.get(i+1).getLongitude());
-                PolylineOptions polyOptions = new PolylineOptions().add(start).add(end).color(getActivity().getResources().getColor(R.color.white)).width(10);
-                Polyline newLine = map.addPolyline(polyOptions);
-                listOfLines.add(newLine);
+        if(dataCache.isLifeStory()) {
+            for (int i = 0; i < personEvents.size(); i++) {
+                if (i + 1 >= personEvents.size()) {
+                    break;
+                } else {
+                    LatLng start = new LatLng(personEvents.get(i).getLatitude(), personEvents.get(i).getLongitude());
+                    LatLng end = new LatLng(personEvents.get(i + 1).getLatitude(), personEvents.get(i + 1).getLongitude());
+                    PolylineOptions polyOptions = new PolylineOptions().add(start).add(end).color(getActivity().getResources().getColor(R.color.white)).width(10);
+                    Polyline newLine = map.addPolyline(polyOptions);
+                    listOfLines.add(newLine);
+                }
             }
         }
         //Recursive Function to add the lines for family
-        addLineRecursive(clickedOnPerson, map);
+        if (dataCache.isFamilyTreeLine()) {
+            dataCache.setFirstMarker(true);
+            addLineRecursive(clickedOnPerson, map, 24);
+        }
     }
 
 //Find the earliest event (usually birth) for the spouse event
@@ -212,8 +261,8 @@ public class MapsFragment extends Fragment {
 
 //Load all the markers onto the map
     private void loadMarkers(GoogleMap googleMap){
-        DataCache dataCache = DataCache.getInstance();
-        Set<Event> eventList = dataCache.getListEvents();
+
+        eventList = dataCache.calculateEventsOnSettings();
 
         for (Event newEvent : eventList){
             if (newEvent.getEventType().equalsIgnoreCase("birth")) {
@@ -266,32 +315,51 @@ public class MapsFragment extends Fragment {
         return 20;
     }
 
-    private void addLineRecursive(Person person, GoogleMap map){
-        DataCache data = DataCache.getInstance();
+    private void addLineRecursive(Person person, GoogleMap map, int width){
         if (person.getFatherID() != null){
             //Recursivly call the data till the end
-            addLineRecursive(data.getPerson(person.getFatherID()), map);
-            addLineRecursive(data.getPerson(person.getMotherID()), map);
+            addLineRecursive(dataCache.getPerson(person.getFatherID()), map, width - 8);
+            addLineRecursive(dataCache.getPerson(person.getMotherID()), map, width -8);
 
-            List<Event> personEvents = data.getAssociatedEvents(person.getPersonID());
-            List<Event> motherEvents = data.getAssociatedEvents(person.getMotherID());
-            List<Event> fatherEvents = data.getAssociatedEvents(person.getFatherID());
+            List<Event> personEvents = dataCache.getAssociatedEvents(person.getPersonID());
+            List<Event> motherEvents = dataCache.getAssociatedEvents(person.getMotherID());
+            List<Event> fatherEvents = dataCache.getAssociatedEvents(person.getFatherID());
 
             Collections.sort(personEvents, year);
             Collections.sort(motherEvents, year);
             Collections.sort(fatherEvents, year);
-            //Create Mother Lines
-            LatLng start = new LatLng(personEvents.get(0).getLatitude(), personEvents.get(0).getLongitude());
-            LatLng end = new LatLng(motherEvents.get(0).getLatitude(), motherEvents.get(0).getLongitude());
-            PolylineOptions polyOptions = new PolylineOptions().add(start).add(end).color(getActivity().getResources().getColor(R.color.purple_200)).width(checkGeneration(motherEvents.get(0).getYear()));
-            Polyline newLine = map.addPolyline(polyOptions);
-            listOfLines.add(newLine);
-            //Create Father Lines
-            LatLng startFather = new LatLng(personEvents.get(0).getLatitude(), personEvents.get(0).getLongitude());
-            LatLng endFather = new LatLng(fatherEvents.get(0).getLatitude(), fatherEvents.get(0).getLongitude());
-            PolylineOptions polyOptionsFather = new PolylineOptions().add(startFather).add(endFather).color(getActivity().getResources().getColor(R.color.purple_200)).width(checkGeneration(fatherEvents.get(0).getYear()));
-            Polyline newLineFather = map.addPolyline(polyOptionsFather);
-            listOfLines.add(newLineFather);
+            if(person.getPersonID().equals(dataCache.getEventActivity().getPersonID())) {
+                //Mother Lines for Clicked Event
+                LatLng start = new LatLng(dataCache.getEventActivity().getLatitude(), dataCache.getEventActivity().getLongitude());
+                LatLng end = new LatLng(motherEvents.get(0).getLatitude(), motherEvents.get(0).getLongitude());
+                PolylineOptions polyOptions = new PolylineOptions().add(start).add(end).color(getActivity().getResources().getColor(R.color.purple_200)).width(width);
+                Polyline newLine = map.addPolyline(polyOptions);
+                listOfLines.add(newLine);
+
+                //Create Father Lines
+                LatLng startFather = new LatLng(dataCache.getEventActivity().getLatitude(), dataCache.getEventActivity().getLongitude());
+                LatLng endFather = new LatLng(fatherEvents.get(0).getLatitude(), fatherEvents.get(0).getLongitude());
+                PolylineOptions polyOptionsFather = new PolylineOptions().add(startFather).add(endFather).color(getActivity().getResources().getColor(R.color.purple_200)).width(width);
+                Polyline newLineFather = map.addPolyline(polyOptionsFather);
+                listOfLines.add(newLineFather);
+            } else {
+                //Create Mother Lines
+                LatLng start = new LatLng(personEvents.get(0).getLatitude(), personEvents.get(0).getLongitude());
+                LatLng end = new LatLng(motherEvents.get(0).getLatitude(), motherEvents.get(0).getLongitude());
+                PolylineOptions polyOptions = new PolylineOptions().add(start).add(end).color(getActivity().getResources().getColor(R.color.purple_200)).width(checkGeneration(width));
+                Polyline newLine = map.addPolyline(polyOptions);
+                listOfLines.add(newLine);
+
+                //Create Father Lines
+
+                LatLng startFather = new LatLng(personEvents.get(0).getLatitude(), personEvents.get(0).getLongitude());
+                LatLng endFather = new LatLng(fatherEvents.get(0).getLatitude(), fatherEvents.get(0).getLongitude());
+                PolylineOptions polyOptionsFather = new PolylineOptions().add(startFather).add(endFather).color(getActivity().getResources().getColor(R.color.purple_200)).width(width);
+                Polyline newLineFather = map.addPolyline(polyOptionsFather);
+                listOfLines.add(newLineFather);
+            }
+
+
         }
     }
 
@@ -306,12 +374,43 @@ public class MapsFragment extends Fragment {
         }
     }
 
+    private void setUpEventActivity(){
+        Event selectedOne = dataCache.getEventActivity();
+        LatLng current = new LatLng(selectedOne.getLatitude(), selectedOne.getLongitude());
+        defaultMap.moveCamera(CameraUpdateFactory.newLatLng(current));
+        Person personClicked = dataCache.getPerson(selectedOne.getPersonID());
+        if (personClicked.getGender().equalsIgnoreCase("m")){
+            Drawable maleGender = new IconDrawable(getContext(), FontAwesomeIcons.fa_male).colorRes(R.color.blue).sizeDp(35);
+            genderPhoto.setImageDrawable(maleGender);
+        }
+        else {
+            Drawable femaleGender = new IconDrawable(getContext(), FontAwesomeIcons.fa_female).colorRes(R.color.pink).sizeDp(35);
+            genderPhoto.setImageDrawable(femaleGender);
+        }
+        TextView nameOfPerson = (TextView) getView().findViewById(R.id.mapTextName);
+        TextView eventInfo = (TextView) getView().findViewById(R.id.mapTextEvent);
+        String name = personClicked.getFirstName() + " " + personClicked.getLastName();
+        nameOfPerson.setText(name);
+        String eventString = selectedOne.getEventType() + ": " + selectedOne.getCity() + ", " + selectedOne.getCountry() + " (" + selectedOne.getYear() + ")";
+        eventInfo.setText(eventString);
+        setLines(selectedOne, defaultMap);
+       // dataCache.setEventActivty(false);
+    }
+
+    private boolean eventExists(String PersonID){
+        for (Event event : eventList){
+            if (event.getPersonID().equalsIgnoreCase(PersonID)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Comparator<Event> year = new Comparator<Event>() {
         @Override
         public int compare(Event event, Event t1) {
             int yearOne = event.getYear();
             int yearTwo = t1.getYear();
-
             return yearOne - yearTwo;
         }
     };

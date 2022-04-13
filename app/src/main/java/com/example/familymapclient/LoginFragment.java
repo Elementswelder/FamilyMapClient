@@ -56,7 +56,6 @@ public class LoginFragment extends Fragment {
     private TextWatcher textWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
         }
 
         @Override
@@ -69,11 +68,7 @@ public class LoginFragment extends Fragment {
             firstNameInput = firstName.getText().toString();
             lastNameInput = lastName.getText().toString();
             emailInput = email.getText().toString();
-
-            registerButton.setEnabled(!serverInput.isEmpty() && !portInput.isEmpty() && !usernameInput.isEmpty() && !passwordInput.isEmpty() && !firstNameInput.isEmpty() &&
-                    !lastNameInput.isEmpty() && !emailInput.isEmpty() && clicked);
-
-            loginButton.setEnabled(!usernameInput.isEmpty() && !passwordInput.isEmpty() && !portInput.isEmpty() && !serverInput.isEmpty());
+            checkButtonActivate();
 
 
         }
@@ -83,6 +78,7 @@ public class LoginFragment extends Fragment {
 
         }
     };
+
 
     public interface Listener {
         void notifyDone();
@@ -147,10 +143,11 @@ public class LoginFragment extends Fragment {
         radioGroup = view.findViewById(R.id.genders);
 
         //server.setText("10.0.2.2");
-        server.setText("10.0.0.41");
+        server.setText("192.168.2.57");
         port.setText("8080");
         username.setText("sheil");
         password.setText("parker");
+
 
 
 
@@ -159,6 +156,7 @@ public class LoginFragment extends Fragment {
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 clicked = true;
                 selectButton = (RadioButton)view.findViewById(i);
+                checkButtonActivate();
             }
         });
 
@@ -186,7 +184,6 @@ public class LoginFragment extends Fragment {
                         if (newMessage.contains("Error")){
                             Toast.makeText(getActivity(), "Failed to Login", Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getActivity(), firstNameInput + " " + lastNameInput, Toast.LENGTH_LONG).show();
                             listener.notifyDone();
                         }
                        // totalSizeTextView.setText(getString(R.string.downloadSizeLabel, totalSize));
@@ -219,7 +216,6 @@ public class LoginFragment extends Fragment {
                         if (newMessage.contains("Error")){
                             Toast.makeText(getActivity(), "Failed to Register", Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getActivity(), firstNameInput + " " + lastNameInput, Toast.LENGTH_LONG).show();
                             listener.notifyDone();
                         }
                         // totalSizeTextView.setText(getString(R.string.downloadSizeLabel, totalSize));
@@ -234,7 +230,6 @@ public class LoginFragment extends Fragment {
                 }
             }
         });
-
         return view;
     }
 
@@ -268,13 +263,12 @@ public class LoginFragment extends Fragment {
 
             if (!userLoginResponse.isSuccess()) {
                 sendMessage(userLoginResponse.getMessage());
-                // Toast.makeText(getActivity(), "Failed to Register", Toast.LENGTH_LONG).show();
             } else {
                 DataCache cache = DataCache.getInstance();
                 sendMessage(firstName, lastName);
                 PersonRRResponse people = serverProxy.Person(userLoginResponse.getAuthtoken());
                 EventRRResponse events = serverProxy.Event(userLoginResponse.getAuthtoken());
-                cache.loadData(events.getData(), people.getPersonData(), userLoginResponse.getAuthtoken(),"noID", userLoginResponse.getUsername(),
+                cache.loadData(events.getData(), people.getPersonData(), userLoginResponse.getAuthtoken(),userLoginResponse.getPersonID(), userLoginResponse.getUsername(),
                         firstName, lastName);
 
             }
@@ -333,7 +327,6 @@ public class LoginFragment extends Fragment {
 
              if (!response.isSuccess()) {
                  sendMessage(response.getMessage());
-               // Toast.makeText(getActivity(), "Failed to Register", Toast.LENGTH_LONG).show();
             } else {
                 DataCache cache = DataCache.getInstance();
                 sendMessage(firstName, lastName);
@@ -366,4 +359,11 @@ public class LoginFragment extends Fragment {
             messageHandler.sendMessage(message);
         }
     }
+    private void checkButtonActivate(){
+        registerButton.setEnabled(!serverInput.isEmpty() && !portInput.isEmpty() && !usernameInput.isEmpty() && !passwordInput.isEmpty() && !firstNameInput.isEmpty() &&
+                !lastNameInput.isEmpty() && !emailInput.isEmpty() && clicked);
+
+        loginButton.setEnabled(!usernameInput.isEmpty() && !passwordInput.isEmpty() && !portInput.isEmpty() && !serverInput.isEmpty());
+    }
+
 }

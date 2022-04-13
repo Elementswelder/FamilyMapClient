@@ -52,4 +52,16 @@
     <string name="maleEventCode">male_event</string>
     <string name="femaleEventCode">female_event</string>
     <string name="logoutCode">logout_code</string>
+
+
+    <!-- Person Activity Strings -->
+    <string name="personFirstName"></string>
+    <string name="personFirstPlaceholer">First Name</string>
+    <string name="personLastName"></string>
+    <string name="personLastPlaceholer">Last Name</string>
+    <string name="personGender"></string>
+    <string name="personGenderPlaceholer">Gender</string>
+    <string name="lifeEvents">LIFE EVENTS</string>
+    <string name="family">FAMILY</string>
+
 </resources>

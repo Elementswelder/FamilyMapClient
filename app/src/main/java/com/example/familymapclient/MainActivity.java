@@ -50,15 +50,5 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Lis
                 .commit();
     }
 
-    public void notifyDoneTwo(){
-        FragmentManager fragmentManager = this.getSupportFragmentManager();
-        Fragment fragment = new LoginFragment();
-
-        fragmentManager.beginTransaction()
-                .replace(R.id.fragmentFrameLayout, fragment)
-                .commit();
-
-    }
-
 
 }

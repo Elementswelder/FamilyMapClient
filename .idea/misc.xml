@@ -3,10 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/activity_event.xml" value="0.1334853090172239" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/activity_main.xml" value="0.2604166666666667" />
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/activity_person.xml" value="0.31640625" />
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/activity_search.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/activity_settings.xml" value="0.31640625" />
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/event_layout.xml" value="0.536" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/fragment_login.xml" value="0.4" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/fragment_maps.xml" value="0.36807817589576547" />
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/group_item_list.xml" value="0.1265625" />
+        <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/layout/person_layout.xml" value="0.15942028985507245" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/menu/main_menu.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/andre/AndroidStudioProjects/FamilyMapClient/app/src/main/res/xml/prefrences.xml" value="0.1" />
       </map>

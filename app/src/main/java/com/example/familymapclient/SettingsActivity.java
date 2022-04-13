@@ -104,6 +104,7 @@ public class SettingsActivity extends AppCompatActivity {
                     else {
                         data.setFatherSide(false);
                     }
+                    data.calculateEventsOnSettings();
                     return true;
                 }
             });
@@ -116,6 +117,7 @@ public class SettingsActivity extends AppCompatActivity {
                     else {
                         data.setMotherSide(false);
                     }
+                    data.calculateEventsOnSettings();
                     return true;
                 }
             });
@@ -128,6 +130,7 @@ public class SettingsActivity extends AppCompatActivity {
                     else {
                         data.setMaleEvents(false);
                     }
+                    data.calculateEventsOnSettings();
                     return true;
                 }
             });
@@ -136,10 +139,13 @@ public class SettingsActivity extends AppCompatActivity {
                 public boolean onPreferenceChange(Preference preference, Object value) {
                     if (value.equals(true)) {
                         data.setFemaleEvents(true);
+                        Toast.makeText(getActivity(), "True", Toast.LENGTH_SHORT).show();
                     }
                     else {
                         data.setFemaleEvents(false);
+                        Toast.makeText(getActivity(), "False", Toast.LENGTH_SHORT).show();
                     }
+                    data.calculateEventsOnSettings();
                     return true;
                 }
             });
@@ -147,6 +153,10 @@ public class SettingsActivity extends AppCompatActivity {
             logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
+                    DataCache dataCache = DataCache.getInstance();
+                    dataCache.setPersonActivity(null);
+                    dataCache.setEventActivity(null);
+                    dataCache.clearAll();
                     Intent intent = new Intent(getActivity(), MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
